@@ -1,0 +1,24 @@
+#!/usr/bin/env sh
+
+BUCKET=$1
+REGION=$2
+
+if [[ -z ${BUCKET} ]]; then echo "Parameter 1 should be the bucket name"; exit 1; fi
+if [[ -z ${REGION} ]]; then echo "Parameter 2 should be the region name"; exit 2; fi
+
+HAS_BUCKET=$(aws s3api list-buckets --query "length(Buckets[?Name=='${BUCKET}'])")
+
+if [ "${HAS_BUCKET}" == "0" ]; then
+    echo "S3: Creating s3 bucket '${BUCKET}'"
+
+    if [ "${REGION}" == "us-east-1" ]; then
+        EXTRA_ARGS=""
+    else
+        EXTRA_ARGS="--create-bucket-configuration LocationConstraint=${REGION}"
+    fi
+
+    aws s3api create-bucket --bucket ${BUCKET} --region ${REGION} ${EXTRA_ARGS}
+    aws s3api put-bucket-versioning --bucket ${BUCKET} --versioning-configuration Status=Enabled
+else
+    echo "S3: Bucket '${BUCKET}' already exists"
+fi

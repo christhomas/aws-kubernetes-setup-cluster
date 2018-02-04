@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+
+CLUSTER=$1
+
+if [[ -z ${CLUSTER} ]]; then echo "Required env param CLUSTER was empty"; exit 1; fi
+
+CLUSTER_STATUS=$(kops get cluster ${CLUSTER} >> /dev/null 2>&1 || echo $?)
+if [ "STATUS(${CLUSTER_STATUS})" == "STATUS()" ]; then
+    echo "Kops: Deleting cluster '${CLUSTER}'"
+
+    kops delete cluster ${CLUSTER} --yes
+else
+    echo "Kops: Cluster '${CLUSTER}' not found, cannot delete it"
+fi

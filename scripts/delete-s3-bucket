@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+
+BUCKET=$1
+
+if [[ -z ${BUCKET} ]]; then echo "The first parameter should be the bucket to delete"; exit 1; fi
+
+# delete bucket
+HAS_BUCKET=$(aws s3api list-buckets --query "length(Buckets[?Name=='${BUCKET}'])")
+
+if [ "${HAS_BUCKET}" == "1" ]; then
+    echo "S3: Deleting bucket '${BUCKET}'"
+
+    empty-s3-bucket ${BUCKET}
+
+    aws s3api delete-bucket --bucket ${BUCKET}
+else
+    echo "S3: Bucket '${BUCKET}' not found, cannot delete it"
+fi

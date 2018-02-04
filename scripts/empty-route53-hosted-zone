@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+
+ZONE_ID=$1
+
+if [[ -z ${ZONE_ID} ]]; then echo "The first parameter should be the zone id of the hosted zone to empty"; exit 1; fi
+
+RECORDS=$(aws route53 list-resource-record-sets --hosted-zone-id $ZONE_ID --query "ResourceRecordSets[?Type=='A']" | jq -cr .[])
+
+for R in ${RECORDS}; do
+    aws route53 change-resource-record-sets \
+        --hosted-zone-id ${ZONE_ID} \
+        --change-batch '{"Changes":[{"Action":"DELETE","ResourceRecordSet":'"$R"'}]}' \
+        --output text \
+        --query 'ChangeInfo.Id'
+done

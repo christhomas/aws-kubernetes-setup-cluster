@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+
+DOMAIN=$1
+
+if [[ -z ${DOMAIN} ]]; then echo "The first parameter must be the hosted zone to delete"; exit 1; fi
+
+TEST="TEST_STRING($@)"
+if [[ $(expr match "${TEST}" .*--yes.*) -eq 0 ]]; then
+    echo "This command requires --yes parameter to delete the hosted zone";
+    exit 1;
+fi
+
+ZONE_ID=$(aws route53 list-hosted-zones --output text --query "HostedZones[?Name=='${DOMAIN}.'].Id")
+if [[ ! -z ${ZONE_ID} ]]; then
+    echo "Route 53: Deleting hosted zone '${DOMAIN}'"
+
+    empty-route53-hosted-zone ${ZONE_ID}
+
+    aws route53 delete-hosted-zone --id=${ZONE_ID}
+else
+    echo "Route 53: Hosted zone '${DOMAIN}' not found, cannot delete it"
+fi

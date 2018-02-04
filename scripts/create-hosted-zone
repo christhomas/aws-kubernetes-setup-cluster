@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+
+DOMAIN=$1
+
+if [[ -z ${DOMAIN} ]]; then echo "Parameter 1 should be the domain to host this cluster on"; exit 1; fi
+
+HAS_HOSTED_ZONE=$(aws route53 list-hosted-zones --query "length(HostedZones[?Name=='${DOMAIN}.'])")
+
+if [ "${HAS_HOSTED_ZONE}" == "0" ]; then
+    aws route53 create-hosted-zone --name ${DOMAIN} --caller-reference $(uuidgen)
+    echo "Route 53: Update the DNS records for the domain with the DNS records contained in the above response"
+else
+    echo "Route 53: Hosted Zone '${DOMAIN}' already exists"
+fi

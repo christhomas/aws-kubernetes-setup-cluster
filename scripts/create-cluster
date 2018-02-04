@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+
+CLUSTER=$1
+REGION=$2
+AZ=$3
+
+if [[ -z ${CLUSTER} ]]; then echo "The first parameter should be the cluster name"; exit 1; fi
+if [[ -z ${REGION} ]]; then echo "The second parameter should be the region name"; exit 2; fi
+
+echo "Kops: Testing whether the cluster exists or not"
+
+NOT_CLUSTER=$(kops get cluster ${CLUSTER} >> /dev/null 2>&1 || echo $?)
+if [ "${NOT_CLUSTER}" == "1" ]; then
+    if [ "${AZ}" == "" ]; then
+        AZ=$(aws ec2 describe-availability-zones --region ${REGION} --query "AvailabilityZones[0].ZoneName")
+    fi
+    echo "Kops: Creating cluster '${CLUSTER}' for '${AZ}'"
+
+    kops create cluster --zones ${AZ} ${CLUSTER}
+    kops update cluster ${CLUSTER} --yes
+
+    echo "Kops: Cluster should be ready now"
+    kops validate cluster ${CLUSTER}
+    kubectl get nodes
+else
+    echo "Kops: Cluster '${CLUSTER}' already exists"
+fi

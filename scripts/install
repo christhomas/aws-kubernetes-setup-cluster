@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+set -x
+
+if [ -z ${BUCKET} ]; then echo "ERROR: 'BUCKET' env var missing" && exit 1; fi
+if [ -z ${REGION} ]; then echo "ERROR: 'REGION' env var missing" && exit 2; fi
+if [ -z ${DOMAIN} ]; then echo "ERROR: 'DOMAIN' env var missing" && exit 3; fi
+if [ -z ${CLUSTER} ]; then echo "ERROR: 'CLUSTER' env var missing" && exit 4; fi
+
+echo "S3: Testing whether configuration store '${BUCKET}' exists"
+
+create-s3-bucket ${BUCKET} ${REGION}
+create-hosted-zone ${DOMAIN}
+create-cluster ${CLUSTER} ${REGION}
+
+echo "Everything should be ready now, try to run kops or kubectl commands to test your setup"
+exit 0

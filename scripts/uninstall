@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+
+if [ -z ${BUCKET} ]; then echo "ERROR: 'BUCKET' env var missing" && exit 1; fi
+if [ -z ${DOMAIN} ]; then echo "ERROR: 'DOMAIN' env var missing" && exit 2; fi
+if [ -z ${CLUSTER} ]; then echo "ERROR: 'CLUSTER' env var missing" && exit 3; fi
+
+delete-cluster ${CLUSTER}
+
+TEST="TEST_STRING($@)"
+if [[ $(expr match "${TEST}" .*--delete-hosted-zone.*) -ne 0 ]]; then
+    delete-hosted-zone ${DOMAIN} --yes
+else
+    echo "Route 53: The parameter --delete-hosted-zone was not found, so skipping deleting the zone"
+fi
+
+delete-s3-bucket ${BUCKET}
+
+exit 0

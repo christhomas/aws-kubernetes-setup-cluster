@@ -1,0 +1,31 @@
+#!/usr/bin/env sh
+
+# This script probably won't delete millions of items cause of pagination
+# TODO: make this script do a loop until it finds no more items in each group verions and delete markers
+
+BUCKET=$1
+
+if [[ -z ${BUCKET} ]]; then echo "The first parameter should be the bucket name to empty"; exit 1; fi
+
+# Thank you upendrasoft from github
+# https://gist.github.com/weavenet/f40b09847ac17dd99d16#gistcomment-2160071
+versions=`aws s3api list-object-versions --bucket ${BUCKET} | jq '.Versions'`
+markers=`aws s3api list-object-versions --bucket ${BUCKET} | jq '.DeleteMarkers'`
+
+echo "removing files"
+for version in $(echo "${versions}" | jq -r '.[] | @base64'); do
+    version=$(echo ${version} | base64 -d)
+
+    key=`echo $version | jq -r .Key`
+    versionId=`echo $version | jq -r .VersionId `
+    aws s3api delete-object --bucket ${BUCKET} --key $key --version-id $versionId
+done
+
+echo "removing delete markers"
+for marker in $(echo "${markers}" | jq -r '.[] | @base64'); do
+    marker=$(echo ${marker} | base64 -d)
+
+    key=`echo $marker | jq -r .Key`
+    versionId=`echo $marker | jq -r .VersionId `
+    aws s3api delete-object --bucket ${BUCKET} --key $key --version-id $versionId
+done
