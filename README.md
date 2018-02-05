@@ -1,4 +1,4 @@
-# aws-kubernetes-setup-cluster
+# kubernetes-aws-kops
 A docker compose setup for initialising kubernetes to install on an AWS cluster
 
 This docker container will install and configure kops and kubectl for setting up an AWS Cluster.  You can provide your aws credentials, ssh credentials and kube-config files in separately directories, provide some environment variables as noted in the docker-compose.yml and quickly install the cluster and gain access to it.
