@@ -1,8 +1,5 @@
 #!/usr/bin/env sh
 
-# Test the proper credentials and configuration are in place before attempting to execute anything
-test-setup
-
 CLUSTER=$1
 REGION=$2
 DOMAIN=$3
