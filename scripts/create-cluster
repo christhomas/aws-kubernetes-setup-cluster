@@ -22,12 +22,9 @@ if [ "${NOT_CLUSTER}" == "1" ]; then
 
     echo "Kops: Updating cluster ${CLUSTER} --yes"
     kops update cluster ${CLUSTER} --yes
-
-    echo "Kops: Cluster should be ready now, validating"
-    kops validate cluster ${CLUSTER}
-
-    echo "Kubectl: get nodes"
-    kubectl get nodes
 else
     echo "Kops: Cluster '${CLUSTER}' already exists"
 fi
+
+echo "If the cluster does not become available immediately, run 'validate-cluster' periodically until it becomes available"
+validate-cluster

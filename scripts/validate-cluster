@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+
+test-setup
+
+echo "Kops: Cluster should be ready now, validating"
+kops validate cluster ${CLUSTER}
+
+echo "Kubectl: get nodes"
+kubectl get nodes
