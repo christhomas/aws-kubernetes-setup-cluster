@@ -1,8 +1,13 @@
 #!/usr/bin/env sh
 
+if [[ -z ${AWS_PROFILE} ]]; then
+    echo "AWS Profile was missing, please set the 'AWS_PROFILE' environment variable";
+    exit 1
+fi
+
 if [[ ! -s ${HOME}/.aws/config ]] || [[ ! -s ${HOME}/.aws/credentials ]]; then
     echo "AWS Credentials missing, run 'aws configure' before trying to run any other command"
-    exit 1
+    exit 2
 fi
 
 if [[ ! -s ${HOME}/.ssh/id_rsa ]] || [[ ! -s ${HOME}/.ssh/id_rsa.pub ]]; then

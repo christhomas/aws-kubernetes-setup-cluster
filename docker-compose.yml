@@ -7,6 +7,7 @@ services:
     volumes:
       - ./aws:/root/.aws
       - ./ssh:/root/.ssh
+      - ./projects:/projects
 
   kops-burning-candle:
     image: kops:latest
@@ -17,7 +18,29 @@ services:
     volumes:
       - ./kube-config/burning-candle.conf:/root/.kube/config
     environment:
+      - AWS_PROFILE=burning-candle
       - BUCKET=burning-candle-kops-config
       - REGION=eu-west-1
       - DOMAIN=burning-candle.com
       - CLUSTER=k8s.burning-candle.com
+      - MASTER_INSTANCE=t2.micro
+      - NODE_INSTANCE=t2.micro
+
+  kops-ratemybravas:
+      image: kops:latest
+      depends_on:
+        - base
+      volumes_from:
+        - base
+      volumes:
+        - ./kube-config/ratemybravas.conf:/root/.kube/config
+      environment:
+        - AWS_PROFILE=ratemybravas
+        - BUCKET=ratemybravas-kops-config
+        - REGION=eu-west-1
+        - DOMAIN=ratemybravas.com
+        - CLUSTER=k8s.ratemybravas.com
+        - MASTER_INSTANCE=t2.micro
+        - MASTER_COUNT=1
+        - NODE_INSTANCE=t2.micro
+        - NODE_COUNT=2

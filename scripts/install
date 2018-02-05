@@ -10,7 +10,7 @@ echo "S3: Testing whether configuration store '${BUCKET}' exists"
 
 create-s3-bucket ${BUCKET} ${REGION}
 create-hosted-zone ${DOMAIN}
-create-cluster ${CLUSTER} ${REGION}
+create-cluster ${CLUSTER} ${REGION} ${DOMAIN}
 
 echo "Everything should be ready now, try to run kops or kubectl commands to test your setup"
 exit 0

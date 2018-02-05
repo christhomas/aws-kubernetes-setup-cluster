@@ -5,20 +5,27 @@ test-setup
 
 CLUSTER=$1
 REGION=$2
-AZ=$3
+DOMAIN=$3
+AZ=$4
 
 if [[ -z ${CLUSTER} ]]; then echo "The first parameter should be the cluster name"; exit 1; fi
 if [[ -z ${REGION} ]]; then echo "The second parameter should be the region name"; exit 2; fi
+if [[ -z ${DOMAIN} ]]; then echo "The third parameter should be the domain name"; exit 2; fi
+if [[ -z ${AZ} ]]; then AZ=$(aws ec2 describe-availability-zones --region ${REGION} --output text --query "AvailabilityZones[0].ZoneName"); fi
+if [[ -z ${MASTER_INSTANCE} ]]; then MASTER_INSTANCE=t2.micro; fi
+if [[ -z ${MASTER_COUNT} ]]; then MASTER_COUNT=1; fi
+if [[ -z ${NODE_INSTANCE} ]]; then NODE_INSTANCE=t2.micro; fi
+if [[ -z ${NODE_COUNT} ]]; then NODE_COUNT=2; fi
 
 echo "Kops: Testing whether the cluster exists or not"
 
 NOT_CLUSTER=$(kops get cluster ${CLUSTER} >> /dev/null 2>&1 || echo $?)
 if [ "${NOT_CLUSTER}" == "1" ]; then
-    if [ "${AZ}" == "" ]; then
-        AZ=$(aws ec2 describe-availability-zones --region ${REGION} --query "AvailabilityZones[0].ZoneName")
-    fi
     echo "Kops: Creating cluster '${CLUSTER}' for '${AZ}'"
-    kops create cluster --zones ${AZ} ${CLUSTER}
+    kops create cluster --zones ${AZ} ${CLUSTER} \
+        --node-size=${NODE_INSTANCE} --node-count ${NODE_COUNT} \
+        --master-size=${MASTER_INSTANCE} --master-count ${MASTER_COUNT} \
+        --dns-zone=${DOMAIN}
 
     echo "Kops: Updating cluster ${CLUSTER} --yes"
     kops update cluster ${CLUSTER} --yes
