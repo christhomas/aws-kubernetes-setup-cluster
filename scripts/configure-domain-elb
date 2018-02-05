@@ -1,0 +1,33 @@
+#!/usr/bin/env sh
+
+# Test the proper credentials and configuration are in place before attempting to execute anything
+test-setup
+
+CLUSTER=$1
+SERVICE=$2
+DOMAIN=$3
+
+if [[ -z $CLUSTER ]]; then
+    echo "The first parameter should be the name of the cluster to find the service on"
+    exit 1
+fi
+
+if [[ -z $SERVICE ]]; then
+    echo "The second parameter should be the kubernetes service in the format 'namespace/app-name', e.g: 'default/hello-node'"
+    exit 1
+fi
+
+if [[ -z $DOMAIN ]]; then
+    echo "The third parameter should be the domain name record you would like to use for this service"
+    exit 2
+fi
+
+LOAD_BALANCERS=$(aws elb describe-load-balancers --query "LoadBalancerDescriptions[*].LoadBalancerName" | jq -r .[])
+
+for entry in ${LOAD_BALANCERS}; do
+    echo "Load Balancer Name: $entry"
+    TEST=$(aws elb describe-tags --load-balancer-name "$entry" | jq -r ".TagDescriptions[].Tags[] | select(.Value | contains(\"${CLUSTER}\")).Value")
+    if [[ ! -z ${TEST} ]]; then
+        echo "Found load balancer: LB($entry), TEST($TEST)"
+    fi
+done
