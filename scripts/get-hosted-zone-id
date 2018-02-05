@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+DOMAIN=$1
+
+aws route53 list-hosted-zones --output text --query "HostedZones[?Name=='${DOMAIN}.'].Id"

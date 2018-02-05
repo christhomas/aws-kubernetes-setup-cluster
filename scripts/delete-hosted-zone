@@ -10,7 +10,7 @@ if [[ $(expr match "${TEST}" .*--yes.*) -eq 0 ]]; then
     exit 1;
 fi
 
-ZONE_ID=$(aws route53 list-hosted-zones --output text --query "HostedZones[?Name=='${DOMAIN}.'].Id")
+ZONE_ID=$(get-hosted-zone ${DOMAIN})
 if [[ ! -z ${ZONE_ID} ]]; then
     echo "Route 53: Deleting hosted zone '${DOMAIN}'"
 
