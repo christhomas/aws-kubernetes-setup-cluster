@@ -1,5 +1,8 @@
 #!/usr/bin/env sh
 
+# Test the proper credentials and configuration are in place before attempting to execute anything
+test-setup
+
 DOMAIN=$1
 
 if [[ -z ${DOMAIN} ]]; then echo "The first parameter must be the hosted zone to delete"; exit 1; fi

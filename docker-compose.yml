@@ -4,16 +4,20 @@ services:
   base:
     build: .
     image: kops:latest
-  kops-eu-west-1:
-    image: kops:latest
-    depends_on:
-      - base
     volumes:
       - ./aws:/root/.aws
       - ./ssh:/root/.ssh
-      - ./kube-config/eu-west-1.conf:/root/.kube/config
+
+  kops-burning-candle:
+    image: kops:latest
+    depends_on:
+      - base
+    volumes_from:
+      - base
+    volumes:
+      - ./kube-config/burning-candle.conf:/root/.kube/config
     environment:
-      - BUCKET=burning-candle-eu-west-1-kops-config
+      - BUCKET=burning-candle-kops-config
       - REGION=eu-west-1
       - DOMAIN=burning-candle.com
       - CLUSTER=k8s.burning-candle.com

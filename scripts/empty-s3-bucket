@@ -1,5 +1,8 @@
 #!/usr/bin/env sh
 
+# Test the proper credentials and configuration are in place before attempting to execute anything
+test-setup
+
 # This script probably won't delete millions of items cause of pagination
 # TODO: make this script do a loop until it finds no more items in each group verions and delete markers
 
