@@ -13,6 +13,7 @@ This docker container will install and configure kops and kubectl for setting up
 - docker-compoes run kops-burning-candle delete-hosted-zone mydomain.com
 - docker-compose run kops-burning-candle empty-route53-hosted-zone <ZONE_ID>
 - docker-compose run kops-burning-candle empty-s3-bucket burning-candle-kops-config
+- docker-compose run kops-burning-candle configure-domain-elb default/hello-node burning-candle.com
 
 ## Questions:
 #### - Why is there a destroy-cluster and delete-cluster
