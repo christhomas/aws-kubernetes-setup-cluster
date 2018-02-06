@@ -1,33 +1,38 @@
 #!/usr/bin/env sh
 
-# Test the proper credentials and configuration are in place before attempting to execute anything
-test-setup
+SERVICE=$1
+DNS_RECORD=$2
 
-CLUSTER=$1
-SERVICE=$2
-DOMAIN=$3
-
-if [[ -z $CLUSTER ]]; then
-    echo "The first parameter should be the name of the cluster to find the service on"
+if [[ -z ${SERVICE} ]]; then
+    echo "The first parameter should be the kubernetes service in the format 'namespace/app-name', e.g: 'default/hello-node'"
     exit 1
 fi
 
-if [[ -z $SERVICE ]]; then
-    echo "The second parameter should be the kubernetes service in the format 'namespace/app-name', e.g: 'default/hello-node'"
-    exit 1
-fi
-
-if [[ -z $DOMAIN ]]; then
-    echo "The third parameter should be the domain name record you would like to use for this service"
+if [[ -z ${DNS_RECORD} ]]; then
+    echo "The second parameter should be the domain name record you would like to use for this service"
     exit 2
 fi
 
 LOAD_BALANCERS=$(aws elb describe-load-balancers --query "LoadBalancerDescriptions[*].LoadBalancerName" | jq -r .[])
 
-for entry in ${LOAD_BALANCERS}; do
-    echo "Load Balancer Name: $entry"
-    TEST=$(aws elb describe-tags --load-balancer-name "$entry" | jq -r ".TagDescriptions[].Tags[] | select(.Value | contains(\"${CLUSTER}\")).Value")
-    if [[ ! -z ${TEST} ]]; then
-        echo "Found load balancer: LB($entry), TEST($TEST)"
-    fi
+for LB in ${LOAD_BALANCERS}; do
+    TEST_1=$(aws elb describe-tags --load-balancer-name "${LB}" | jq -r ".TagDescriptions[].Tags[] | select(.Value | contains(\"${CLUSTER}\")).Value")
+    if [[ "${TEST_1}" != "${CLUSTER}" ]]; then continue; fi
+
+    TEST_2=$(aws elb describe-tags --load-balancer-name "${LB}" | jq -r ".TagDescriptions[].Tags[] | select(.Value | contains(\"${SERVICE}\")).Value")
+    if [[ "${TEST_2}" != "${SERVICE}" ]]; then continue; fi
+
+    LB_DNS_NAME=$(aws elb describe-load-balancers --query "LoadBalancerDescriptions[?LoadBalancerName=='${LB}'].CanonicalHostedZoneName" | jq -r .[])
+    LB_ZONE_ID=$(aws elb describe-load-balancers --query "LoadBalancerDescriptions[?LoadBalancerName=='${LB}'].CanonicalHostedZoneNameID" | jq -r .[])
+
+    HOSTED_ZONE_ID=$(get-hosted-zone-id ${DOMAIN})
+
+    TEMPLATE="{\"AliasTarget\":{\"HostedZoneId\":\"${LB_ZONE_ID}\",\"EvaluateTargetHealth\":false,\"DNSName\":\"dualstack.${LB_DNS_NAME}.\"},\"Type\":\"A\",\"Name\":\"${DNS_RECORD}.\"}"
+    TEMPLATE=$(echo ${TEMPLATE} | jq -c .)
+
+    echo "Creating 'A' record for kubernetes service '${SERVICE}' for the domain '${DNS_RECORD}', targetting the loadBalancer '${LB_DNS_NAME}' in zone '${LB_ZONE_ID}'"
+
+    aws route53 change-resource-record-sets \
+        --hosted-zone-id ${HOSTED_ZONE_ID} \
+        --change-batch '{"Changes":[{"Action":"UPSERT","ResourceRecordSet":'"${TEMPLATE}"'}]}'
 done
