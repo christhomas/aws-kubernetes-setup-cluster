@@ -3,6 +3,20 @@ A docker compose setup for initialising kubernetes to install on an AWS cluster
 
 This docker container will install and configure kops and kubectl for setting up an AWS Cluster.  You can provide your aws credentials, ssh credentials and kube-config files in separately directories, provide some environment variables as noted in the docker-compose.yml and quickly install the cluster and gain access to it.
 
+## Avoiding Permission problems:
+I have realised that if files are created inside the container, their permissions will cause "docker build" to fail because files inside the context will not have the correct permissions. There is a "fix_perms.sh" script to help with this problem, however to make sure it does't happen in the first place. It is possible to create a few files manually and then they can be safely updated without causing this issue in the first place.  The reason why these files are not in the repository, is because they would be unsafe to commit to the repository because they are storing credentials, so please create them.
+- aws/config
+- aws/credentials
+- kube-config/<PROJECT>.conf
+- ssh/id_rsa
+- ssh/id_rsa.pub
+
+<PROJECT>.conf is a per-project kube config that will be used for each cluster, edit the docker-compose.yml with the following volume
+```
+volumes: 
+  - ./kube-config/<PROJECT>.conf:/root/.kube/config
+```
+
 ## Usage Instructions:
 ### To get a shell on the container
 - docker-compose run kops-burning-candle sh
