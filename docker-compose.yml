@@ -1,6 +1,28 @@
 version: '2'
 
 services:
+  image:
+    image: christhomas/kops:latest
+    build: .
+    
+  kops-taspli:
+    image: christhomas/kops:latest
+    volumes:
+      - ./aws/:/root/.aws/
+      - ./ssh:/root/.ssh
+      - ./projects:/projects
+      - ./kube-config/:/root/.kube/
+    environment:
+      - AWS_PROFILE=taspli
+      - BUCKET=plista-staging-kops-config
+      - REGION=eu-central-1
+      - DOMAIN=taspli.com
+      - CLUSTER=k8s.taspli.com
+      - MASTER_INSTANCE=t2.micro
+      - MASTER_COUNT=1
+      - NODE_INSTANCE=t2.micro
+      - NODE_COUNT=4
+
   kops-burning-candle:
     image: christhomas/kops:latest
     volumes:
